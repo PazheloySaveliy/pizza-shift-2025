@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizza Catalog</title>
+    <link rel="stylesheet" type="text/css"  href="styles.css">
+    
+</head>
+<body>
+    <div class="navbar">
+        <img src="../assets/images/logo.png" alt="Логотип" class="logo">
+        <button>Профиль</button>
+        <button>Заказы</button>
+        <button>Корзина</button>
+    </div>
+
+    <div class="container"></div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <img id="modal-img" src="" alt="">
+            <h2 id="modal-title"></h2>
+            <p id="modal-description"></p>
+            <p id="modal-price"></p>
+            <div class="size-buttons">
+                <button data-size="small">Маленькая</button>
+                <button data-size="medium">Средняя</button>
+                <button data-size="large">Большая</button>
+            </div>
+            <button id="add-to-cart">Добавить в корзину</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const proxyUrl = 'https://api.allorigins.win/raw?url=';
+            const targetUrl = 'http://shift-intensive.ru/api/pizza/catalog';
+
+            const container = document.querySelector('.container');
+            const modal = document.getElementById('modal');
+            const modalImg = document.getElementById('modal-img');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDescription = document.getElementById('modal-description');
+            const modalPrice = document.getElementById('modal-price');
+
+            fetch(proxyUrl + encodeURIComponent(targetUrl))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        data.catalog.forEach(pizza => {
+                            const pizzaCard = document.createElement('div');
+                            pizzaCard.classList.add('pizza-card');
+
+                            const pizzaImage = pizza.img ? `http://shift-intensive.ru/api${pizza.img}` : 'default-image.png';
+
+                            pizzaCard.innerHTML = `
+                                <img src="${pizzaImage}" alt="${pizza.name}">
+                                <div class="card-title">${pizza.name}</div>
+                                <div class="card-sub">${pizza.description}</div>
+                                <div class="card-price">от ${pizza.sizes[0].price} ₽</div>
+                                <button class="button">Выбрать</button>
+                            `;
+
+                            const button = pizzaCard.querySelector('.button');
+                            button.addEventListener('click', () => {
+                                modalImg.src = pizzaImage;
+                                modalTitle.textContent = pizza.name;
+                                modalDescription.textContent = pizza.description;
+                                modalPrice.textContent = `Цена: от ${pizza.sizes[0].price} ₽`;
+                                modal.style.display = 'flex';
+                            });
+
+                            container.appendChild(pizzaCard);
+                        });
+                    } else {
+                        console.error('Ошибка при получении данных с сервера:', data.reason);
+                    }
+                })
+                .catch(error => console.error('Ошибка сети:', error));
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
